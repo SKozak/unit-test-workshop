@@ -35,24 +35,22 @@ class LoanService {
         }
 
         final BigDecimal priceAfterPromotions = promotionService.calculatePriceAfterPromotions(loanOrder.grantedPromotionsIds(), loanOrder.amount());
-        final BigDecimal calculatedPriceAfterFess = priceAfterPromotions.add(FEE);
+        final BigDecimal oriceAfterFess = priceAfterPromotions.add(FEE);
 
         //Tudaj można by było już wydzielić logikę do wyliczania max allowed dla klienta do oddzielnego serwisu
         final ClientType clientType = clientService.getClientType(loanOrder.loanOrderClient().id());
 
 
         switch (clientType) {
-            case VIP ->
-                    validateLoanConstraintsNotExceeded(calculatedPriceAfterFess, loanOrder.installmentsAmount(), 12, 0.25);
-            case REGULAR ->
-                    validateLoanConstraintsNotExceeded(calculatedPriceAfterFess, loanOrder.installmentsAmount(), 8, 0.15);
+            case VIP -> validateLoanConstraintsNotExceeded(oriceAfterFess, loanOrder.installmentsAmount(), 12, 0.25);
+            case REGULAR -> validateLoanConstraintsNotExceeded(oriceAfterFess, loanOrder.installmentsAmount(), 8, 0.15);
             case STUDENT ->
-                    validateLoanConstraintsNotExceeded(calculatedPriceAfterFess, loanOrder.installmentsAmount(), 10, 0.10);
-            case NORMAL -> validateLoanConstraintsNotExceeded(calculatedPriceAfterFess, loanOrder.installmentsAmount());
+                    validateLoanConstraintsNotExceeded(oriceAfterFess, loanOrder.installmentsAmount(), 10, 0.10);
+            case NORMAL -> validateLoanConstraintsNotExceeded(oriceAfterFess, loanOrder.installmentsAmount());
         }
         log.info("end processing loanOrder = {}", loanOrder);
-        Loan loan = loanRepository.createLoan(new Loan(calculatedPriceAfterFess, loanOrder.installmentsAmount(),
-                                                       loanOrder.loanOrderClient().id()));
+        Loan loan = new Loan(oriceAfterFess, loanOrder.installmentsAmount(), loanOrder.loanOrderClient().id());
+        loanRepository.createLoan(loan);
         eventEmitter.emit(new LoanGrantedEvent(loan.getId()));
         return loan;
     }
