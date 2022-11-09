@@ -7,12 +7,14 @@ import pl.com.cupofcodes.workshops.tests.testsworkshop.EventEmitter;
 import pl.com.cupofcodes.workshops.tests.testsworkshop.client.ClientService;
 import pl.com.cupofcodes.workshops.tests.testsworkshop.client.ClientType;
 import pl.com.cupofcodes.workshops.tests.testsworkshop.froud.FraudVerifier;
+import pl.com.cupofcodes.workshops.tests.testsworkshop.loan.esception.LoanAlreadyStartedCantModifyException;
 import pl.com.cupofcodes.workshops.tests.testsworkshop.loan.esception.NumberOfInstallmentsValidationException;
 import pl.com.cupofcodes.workshops.tests.testsworkshop.promotion.PromotionService;
 import pl.com.cupofcodes.workshops.tests.testsworkshop.loan.esception.FraudDetectedException;
 import pl.com.cupofcodes.workshops.tests.testsworkshop.loan.esception.RequestedAmountToHighValidationException;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -37,7 +39,6 @@ class LoanService {
         final BigDecimal priceAfterPromotions = promotionService.calculatePriceAfterPromotions(loanOrder.grantedPromotionsIds(), loanOrder.amount());
         final BigDecimal oriceAfterFess = priceAfterPromotions.add(FEE);
 
-        //Tudaj można by było już wydzielić logikę do wyliczania max allowed dla klienta do oddzielnego serwisu
         final ClientType clientType = clientService.getClientType(loanOrder.loanOrderClient().id());
 
 
@@ -79,5 +80,17 @@ class LoanService {
         if (maxAllowedWithExceeding.compareTo(calculatedPriceAfterFess) < 0) {
             throw new RequestedAmountToHighValidationException(calculatedPriceAfterFess, maxAllowedWithExceeding);
         }
+    }
+
+
+
+    public Loan changeInstallments(int newInstallmentsNumber, UUID loanId) {
+        final Loan loan = loanRepository.loadLoanBy(loanId);
+        if (loan.isLoanStarted()){
+            throw new LoanAlreadyStartedCantModifyException("Loan already started can't change any prameters");
+        }
+        loan.changeInstallments(newInstallmentsNumber);
+        loanRepository.updateLoan(loan);
+        return loan;
     }
 }
