@@ -43,11 +43,18 @@ class LoanService {
 
 
         switch (clientType) {
-            case VIP -> validateLoanConstraintsNotExceeded(oriceAfterFess, loanOrder.installmentsAmount(), 12, 0.25);
-            case REGULAR -> validateLoanConstraintsNotExceeded(oriceAfterFess, loanOrder.installmentsAmount(), 8, 0.15);
-            case STUDENT ->
-                    validateLoanConstraintsNotExceeded(oriceAfterFess, loanOrder.installmentsAmount(), 10, 0.10);
-            case NORMAL -> validateLoanConstraintsNotExceeded(oriceAfterFess, loanOrder.installmentsAmount());
+            case VIP:
+                validateLoanConstraintsNotExceeded(oriceAfterFess, loanOrder.installmentsAmount(), 12, 0.25);
+                break;
+            case REGULAR:
+                validateLoanConstraintsNotExceeded(oriceAfterFess, loanOrder.installmentsAmount(), 8, 0.15);
+                break;
+            case STUDENT:
+                validateLoanConstraintsNotExceeded(oriceAfterFess, loanOrder.installmentsAmount(), 10, 0.10);
+                break;
+            case NORMAL:
+                validateLoanConstraintsNotExceeded(oriceAfterFess, loanOrder.installmentsAmount());
+                break;
         }
         log.info("end processing loanOrder = {}", loanOrder);
         Loan loan = new Loan(oriceAfterFess, loanOrder.installmentsAmount(), loanOrder.loanOrderClient().id());
