@@ -4,7 +4,6 @@ import lombok.Value;
 
 import java.math.BigDecimal;
 
-import static java.math.RoundingMode.HALF_DOWN;
 import static pl.com.cupofcodes.workshops.tests.testsworkshop.promotion.PromotionType.PERCENTAGE;
 
 @Value(staticConstructor = "of")
@@ -29,10 +28,11 @@ class PercentagePromotion implements Promotion {
         return PERCENTAGE;
     }
 
-    @Override// błęd, które dzięki testom można wykryć i poprawić wcześniej
+    @Override
     public BigDecimal applyFor(BigDecimal amount) {
-        if (amount.compareTo(BigDecimal.ZERO) > -1) {
-            return amount.multiply(percentageDiscount).divide(ONE_HUNDRED, HALF_DOWN);
+        final BigDecimal resultAmount = amount.subtract(amount.multiply(percentageDiscount));
+        if (resultAmount.compareTo(BigDecimal.ZERO) > 0 ) {
+            return resultAmount;
         }
         return amount;
     }
