@@ -1,4 +1,4 @@
-package pl.com.cupofcodes.workshops.tests.testsworkshop.loan;
+package pl.com.cupofcodes.workshops.tests.testsworkshop;
 
 import org.mockito.ArgumentCaptor;
 import pl.com.cupofcodes.workshops.tests.testsworkshop.loan.esception.LoanAlreadyStartedCantModifyException;

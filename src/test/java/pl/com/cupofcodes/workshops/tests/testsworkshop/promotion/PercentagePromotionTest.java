@@ -10,13 +10,11 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static pl.com.cupofcodes.workshops.tests.testsworkshop.AmountFixture._1000;
+import static pl.com.cupofcodes.workshops.tests.testsworkshop.AmountFixture._1200;
+import static pl.com.cupofcodes.workshops.tests.testsworkshop.AmountFixture._850;
 
 class PercentagePromotionTest {
-
-
-    private static final BigDecimal _1000 = new BigDecimal(1000);
-    private static final BigDecimal _1200 = new BigDecimal(1200);
-    private static final BigDecimal _850 = new BigDecimal("850.00");
 
     @Test
     void should_apply_promotion_when_end_price_is_grater_than_zero() {

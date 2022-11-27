@@ -10,14 +10,13 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static pl.com.cupofcodes.workshops.tests.testsworkshop.AmountFixture._1000;
+import static pl.com.cupofcodes.workshops.tests.testsworkshop.AmountFixture._200;
+import static pl.com.cupofcodes.workshops.tests.testsworkshop.AmountFixture._500;
+import static pl.com.cupofcodes.workshops.tests.testsworkshop.AmountFixture._800;
 import static pl.com.cupofcodes.workshops.tests.testsworkshop.AmountFixture.amountOf;
 
 class AmountPromotionTest {
-
-    private static final BigDecimal _200 = amountOf(200);
-    private static final BigDecimal _800 = amountOf(800);
-    private static final BigDecimal _1000 = amountOf(1_000);
-    private static final BigDecimal _500 = amountOf(500);
 
     @Test
     void should_apply_promotion_when_end_price_is_grater_than_zero() {
@@ -59,8 +58,7 @@ class AmountPromotionTest {
     //LUB
     @ParameterizedTest(name = "should return {0} for promotion of {1} and initialPrice of {2}") //unrolling
     @MethodSource("promotionArgumentsProvider")
-    void shouldApplyPromotionWhenEndPriceIsGraterThanZero(BigDecimal expectedResult, BigDecimal promotion,
-                                                          BigDecimal initialPrice) {
+    void shouldApplyPromotionWhenEndPriceIsGraterThanZero(BigDecimal expectedResult, BigDecimal promotion, BigDecimal initialPrice) {
         //given
         final AmountPromotion aPromotion = aPromotion(promotion);
 
@@ -72,11 +70,8 @@ class AmountPromotionTest {
     }
 
     static Stream<Arguments> promotionArgumentsProvider() {
-        return Stream.of(
-                arguments(_800, _1000, _800),
-                arguments(_200, amountOf(300), _500)
-                //                arguments(),
-                //                arguments()
+        return Stream.of(arguments(_800, _1000, _800),
+                         arguments(_200, amountOf(300), _500)
         );
     }
 

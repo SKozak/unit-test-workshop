@@ -17,7 +17,6 @@ import pl.com.cupofcodes.workshops.tests.testsworkshop.loan.esception.RequestedA
 import pl.com.cupofcodes.workshops.tests.testsworkshop.promotion.PromotionService;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -37,6 +36,9 @@ import static pl.com.cupofcodes.workshops.tests.testsworkshop.client.ClientType.
 import static pl.com.cupofcodes.workshops.tests.testsworkshop.client.ClientType.STUDENT;
 import static pl.com.cupofcodes.workshops.tests.testsworkshop.client.ClientType.VIP;
 import static pl.com.cupofcodes.workshops.tests.testsworkshop.loan.LoanAssertions.assertThats;
+import static pl.com.cupofcodes.workshops.tests.testsworkshop.loan.LoanFixture.aLoanOrder;
+import static pl.com.cupofcodes.workshops.tests.testsworkshop.loan.LoanFixture.aNotStartedLoan;
+import static pl.com.cupofcodes.workshops.tests.testsworkshop.loan.LoanFixture.aStartedLoan;
 
 class LoanServiceTest {
     private static final List<Integer> NO_PROMOTIONS = List.of();
@@ -47,8 +49,9 @@ class LoanServiceTest {
     PromotionService promotionService = mock(PromotionService.class);
     LoanRepository loanRepository = mock(LoanRepository.class);
     EventEmitter eventEmitter = mock(EventEmitter.class);
+    LoanConstraintValidator loanConstraintValidator = new LoanConstraintValidator(loanProperties, clientService);
 
-    LoanService loanService = new LoanService(loanProperties, fraudVerifier, clientService, promotionService, loanRepository, eventEmitter);
+    LoanService loanService = new LoanService(fraudVerifier, promotionService, loanRepository, eventEmitter, loanConstraintValidator);
 
     @BeforeEach
     void beforeEach() {
@@ -56,43 +59,8 @@ class LoanServiceTest {
         when(loanProperties.getMaxAmountOfMoney()).thenReturn(amountOf(1500));
     }
 
-
-    @Test //Bad test
-    void test2() {
-        final Loan loan1 = new Loan(new BigDecimal(1000), 2, 22, true);
-        final LoanRepository loanRepository1 = new LoanRepository() {
-            @Override
-            public Loan createLoan(Loan loan) {
-                return null;
-            }
-
-            @Override
-            public Loan loadLoanBy(UUID loanId) {
-                return loan1;
-            }
-
-            @Override
-            public Loan updateLoan(Loan loan) {
-                return null;
-            }
-        };
-        LoanService loanService1 = new LoanService(null, null, null, null, loanRepository1, null);
-        final UUID loanId = UUID.randomUUID();
-        try {
-            final Loan loan = loanService1.changeInstallments(5, loanId);
-            assert loan.getNumberOfInstallments() == 5;
-        } catch (Exception e) {
-            if (e instanceof LoanAlreadyStartedCantModifyException) {
-                assert true;
-            } else {
-                assert false;
-            }
-        }
-    }
-
-
     @Test
-    void canChangeInstallmentNotStartedLoan() {
+    void canChangeInstallmentOnNotStartedLoan() {
         //given
         final UUID loanId = UUID.randomUUID();
         when(loanRepository.loadLoanBy(loanId)).thenReturn(aNotStartedLoan());
@@ -115,15 +83,6 @@ class LoanServiceTest {
                 .isThrownBy(() -> loanService.changeInstallments(5, loanId));
     }
 
-    private Loan aStartedLoan() {
-        return new Loan(amountOf(1200), 2, 22, true);
-    }
-
-
-    private Loan aNotStartedLoan() {
-        return new Loan(amountOf(1200), 2, 22, false);
-    }
-
     @Test
     void should_throw_exception_when_fraud_detected() {
         //given
@@ -135,7 +94,6 @@ class LoanServiceTest {
     }
 
     @Test
-        //napisać test a później dodawać to cego brakuje aby przeszedł nie od razu test jest super ( buildery itp refaktor wtedy kiedy potrzeba_
     void can_create_loan() {
         //given
         when(promotionService.calculatePriceAfterPromotions(any(), any())).thenReturn(_1000);
@@ -196,7 +154,6 @@ class LoanServiceTest {
         verify(loanRepository, only()).createLoan(loan);
     }
 
-    //Różnica do spocka w spocku można wywolać jeszcze metodę przed zwróceniem argumentu {0}.simpleName() porównać do spocka indexy vs nazwwy przy zmianie
     @ParameterizedTest(name = "should return NumberOfInstallmentsValidationException for clientType {0} when amount is {1}, and installment size is {2}")
     //unrolling
     @MethodSource("loanOrderArgumentProvider")
@@ -211,7 +168,6 @@ class LoanServiceTest {
         assertThatExceptionOfType(NumberOfInstallmentsValidationException.class)
                 .isThrownBy(() -> loanService.createLoan(loanOrder));
     }
-
 
     static Stream<Arguments> loanOrderArgumentProvider() {
         return Stream.of(
@@ -245,18 +201,5 @@ class LoanServiceTest {
                 arguments(REGULAR, amountOf(4500), 5),
                 arguments(STUDENT, amountOf(5000), 5)
         );
-    }
-
-
-    private LoanOrder aLoanOrder(List<Integer> promotionsIds, BigDecimal amount) {
-        return aLoanOrder(promotionsIds, amount, 4);
-    }
-
-    private LoanOrder aLoanOrder(List<Integer> promotionsIds, BigDecimal amount, int numberOfInstallments) {
-        return new LoanOrder(amount, numberOfInstallments, promotionsIds, aClient());
-    }
-
-    private static LoanOrderClient aClient() {
-        return new LoanOrderClient(1, "name", "surname", "123412125", "13123", LocalDate.of(1994, 4, 12));
     }
 }
